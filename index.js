@@ -118,8 +118,8 @@ async function newTask ({ task }) {
     id: id,
     description: task,
     status: 'todo',
-    createdAt: new Date(),
-    updatedAt: new Date()
+    createdAt: new Date().toString(),
+    updatedAt: new Date().toString()
   }
   allTasks.push(newTask)
   // create json file
@@ -137,7 +137,7 @@ async function updateTask ({ idTask, task }) {
     if (taskIndex !== -1) {
       const updatedTask = {
         description: task,
-        updatedAt: new Date()
+        updatedAt: new Date().toString()
       }
       // add update
       allTasks[taskIndex] = {
@@ -177,7 +177,7 @@ async function changeStatus ({ idTask, statusTask }) {
     if (taskIndex !== -1) {
       const updatedTask = {
         status: statusTask,
-        updatedAt: new Date()
+        updatedAt: new Date().toString()
       }
       // add update
       allTasks[taskIndex] = {
