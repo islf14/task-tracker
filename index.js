@@ -14,7 +14,7 @@ async function myEval (cmd, context, filename, callback) {
 }
 
 function myWriter (output) {
-  const text = `  ==> ${output}`
+  const text = `  ==> ${output} \n`
   return text
 }
 
@@ -22,50 +22,58 @@ async function myFunction (input) {
   const clean = input.trim()
   const params = clean.split(" ")
   let message = ''
-  console.log(params)/////
-
   switch (params[0]) {
     case 'add':
       const task = clean.split("\"")
-      console.log(task)//////
       if (task[0] === 'add ') {
         const nt = await newTask({ task: task[1] })
-        if (nt === true) return 'Task saved successfully'
-        return 'Something went wrong'
+        if (nt === true) message = 'Task saved successfully'
+        else message = 'Something went wrong'
       }
-      message = 'Enter a valid task!'
+      else message = 'Enter a valid task!'
       break;
 
     case 'update':
       const task2 = clean.split("\"")
-      console.log(task2)//////
-      if (params[1] !== undefined && task2[1] !== undefined) {
+      if (params[1] !== undefined && params[2] !== undefined && task2[1] !== undefined) {
         const nt = await updateTask({ idTask: params[1], task: task2[1] })
-        if (nt === true) return 'Task updated successfully'
+        if (nt === true) message = 'Task updated successfully'
+        else message = 'Enter a valid ID'
       }
-      message = 'That does not exist to update'
+      else message = 'Enter valid task ID and description'
       break;
 
     case 'delete':
       if (params[1] !== undefined) {
         const nt = await deleteTask({ idTask: params[1] })
-        if (nt === true) return 'Task deleted successfully'
+        if (nt === true) message = 'Task deleted successfully'
+        else message = 'Enter a valid ID'
       }
-      message = 'That does not exist to delete'
+      else message = 'Enter ID to delete'
       break;
 
     case 'mark-in-progress':
     case 'mark-done':
       if (params[1] !== undefined) {
-        const nt = await changeStatus({ idTask: params[1], statusTask: params[0] })
-        if (nt === true) return 'Task updated successfully'
+        let statusTask = 'todo'
+        if (params[0] === 'mark-in-progress') statusTask = 'in-progress'
+        if (params[0] === 'mark-done') statusTask = 'done'
+        const nt = await changeStatus({ idTask: params[1], statusTask })
+        if (nt === true) message = 'Task updated successfully'
+        else message = 'Enter a valid ID'
       }
-      message = 'That cannot be updated'
+      else message = 'Enter ID to update'
       break;
 
     case 'list':
-      console.log(params[0])
+      if (params[1] === undefined || params[1] === 'done' || params[1] === 'todo' || params[1] === 'in-progress') {
+        const nt = await listTasks({ statusTask: params[1] })
+        if (nt !== false) message = nt
+        else message = 'There are not tasks'
+      }
+      else message = "Enter a permitted state"
       break;
+
     default:
       message = 'Enter a valid command!'
   }
@@ -87,7 +95,7 @@ async function writeJson ({ allTasks }) {
     await fs.writeFile(nameFile, jsonData, 'utf8')
     return true
   } catch (error) {
-    console.log(error)
+    console.log('Cannot create JSON')
     return false
   }
 }
@@ -179,6 +187,38 @@ async function changeStatus ({ idTask, statusTask }) {
       // write json
       const write = writeJson({ allTasks })
       if (write) return true
+    }
+  }
+  return false
+}
+
+async function listTasks ({ statusTask }) {
+  if (existsSync(nameFile)) {
+    let allTasks = []
+    allTasks = await readJson()
+    if (allTasks.length !== 0) {
+      let message = 'Correcting listing'
+      switch (statusTask) {
+        case undefined:
+          console.log(allTasks)
+          break;
+        case 'done':
+          const resultDone = allTasks.filter(({ status }) => status === statusTask);
+          if (resultDone.length !== 0) console.log(resultDone)
+          else message = 'The task list with the status done is empty'
+          break;
+        case 'todo':
+          const resultTodo = allTasks.filter(({ status }) => status === statusTask);
+          if (resultTodo.length !== 0) console.log(resultTodo)
+          else message = 'The task list with the status todo is empty'
+          break;
+        case 'in-progress':
+          const resultInProgress = allTasks.filter(({ status }) => status === statusTask);
+          if (resultInProgress.length !== 0) console.log(resultInProgress)
+          else message = 'The task list with the status in-progress is empty'
+          break;
+      }
+      return message
     }
   }
   return false
