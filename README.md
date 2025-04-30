@@ -9,9 +9,6 @@ Run the following commands:
 ```bash
 npm run start
 
-# To add a task
-task-cli >>> add "Buy groceries"
-
 # Adding a new task
 task-cli >>> add "Buy groceries"
 # Output: Task added successfully (ID: 1)
